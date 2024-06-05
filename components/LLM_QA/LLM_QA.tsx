@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import TextInput from './TextInput';
+import Markdown from 'react-markdown'
 
 const LLM_QA = () => {
     const [messages, setMessages] = useState<{sender: string, content: string}[]>([]);
@@ -26,7 +26,8 @@ const LLM_QA = () => {
         const newMessage = { sender: 'User', content: input };
         setMessages([...messages, newMessage]);
 
-        console.log(input);
+        const user_input = input;
+        setInput('');
         const response = await fetch('http://127.0.0.1:5000/process', {
             method: 'POST',
             headers: {
@@ -35,12 +36,11 @@ const LLM_QA = () => {
             body: JSON.stringify({content: input })
         });
         const data = await response.json();
-        
-        if (data && data.reply) {
-            setMessages(msgs => [...msgs, { sender: 'Bot', content: data.reply }]);
+        if (data && data.content) {
+            setMessages(msgs => [...msgs, { sender: 'Bot', content: data.content }]);
         }
         
-        setInput('');
+        
         setFile(null);
     };
 
@@ -49,13 +49,14 @@ const LLM_QA = () => {
             <div className="message-container">
                 {messages.map((msg, index) => (
                     <div key={index} className={`message ${msg.sender === 'User' ? 'user-message' : 'bot-message'}`}>
-                        <p>{msg.content}</p>
+                        {/* <p>{msg.content}</p> */}
+                        <Markdown>{msg.content}</Markdown>
                     </div>
                 ))}
             </div>
             <div className="input-group mb-3">
                 <button className="btn btn-outline-secondary w-10" disable="true" onClick={() => fileInputRef.current?.click()}>Upload File</button>
-                <input type="text" className="form-control w-50" value={input} onChange={handleInputChange} />
+                <input type="text" className="form-control w-50" id="UserInput" value={input} onChange={handleInputChange} />
                 <button className="btn btn-outline-secondary w-10" onClick={handleSubmit}>Send Message</button>
             </div>
         </div>

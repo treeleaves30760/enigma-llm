@@ -19,12 +19,12 @@ def process_input():
     print(f'Content: {user_content}')
     
     system_prompt = '''The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly. You should end your answer with +++.
-    Q:What is your name?+++
-    A:My name is LLM_TA+++
-    Q:'''
+Q:What is your name?+++
+A:My name is LLM_TA+++
+Q:'''
 
     prompt_data = {
-        'prompt': system_prompt + user_content + '+++',
+        'prompt': system_prompt + user_content + '+++\A:',
         'n_predict': 1024,
         'stop': ['+++', 'Q:']
     }
