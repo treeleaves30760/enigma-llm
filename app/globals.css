@@ -3,12 +3,21 @@ body {
   background-image:linear-gradient(90deg,#ffffff,#f0f0f0);
 }
 
-.message-container {
-  display: flex;
-  flex-direction: column;
-  height: 50rem;
+p {
+  margin: 0;
+  padding: 0;
 }
 
+.message-container {
+  height: 50rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* 允許垂直方向上的滾動 */
+  padding: 10px;
+  background-color: #f4f4f8;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
 .message {
   padding: 5px 10px;
   margin: 5px;
