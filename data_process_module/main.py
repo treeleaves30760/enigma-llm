@@ -6,6 +6,9 @@ app = Flask(__name__)
 # 允許所有來自 localhost:3000 的請求
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
 
+# 暫時使用陣列儲存
+documents = []
+
 @app.route('/process', methods=['POST', 'OPTIONS'])
 @cross_origin()
 def process_input():
@@ -40,6 +43,73 @@ Q:'''
     print(response_content)
     # 直接使用 jsonify 回傳結果到前端
     return jsonify({'content': response_content})
+
+@app.route('/add_document', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def add_document():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+    # 檢查是否有 'content'
+    if not request.json or 'content' not in request.json:
+        return jsonify({'error': 'missing content'}), 400
+
+    user_content = request.json['content']
+    print(f'Content: {user_content}')
+    documents.append(user_content)
+    
+    return jsonify({'message': 'document added'})
+
+@app.route('/get_documents', methods=['GET', 'OPTIONS'])
+@cross_origin()
+def get_documents():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+    print(f'Documents: {documents}')
+    return jsonify({'documents': documents})
+
+@app.route('/update_document', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def update_document():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+    # 檢查是否有 'content'
+    if not request.json or 'new_content' not in request.json or 'old_content' not in request.json:
+        return jsonify({'error': 'missing content'}), 400
+
+    new_content = request.json['new_content']
+    old_content = request.json['old_content']
+    print(f'Old Content: {old_content}')
+    print(f'New Content: {new_content}')
+    if old_content in documents:
+        documents.remove(old_content)
+        documents.append(new_content)
+    
+    return jsonify({'message': 'document updated'})
+
+@app.route('/delete_document', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def delete_document():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+    # 檢查是否有 'content'
+    if not request.json or 'content' not in request.json:
+        return jsonify({'error': 'missing content'}), 400
+
+    user_content = request.json['content']
+    print(f'Content: {user_content}')
+    if user_content in documents:
+        documents.remove(user_content)
+    
+    return jsonify({'message': 'document removed'})
+
+@app.route('/clear_documents', methods=['GET', 'OPTIONS'])
+@cross_origin()
+def clear_documents():
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+    documents.clear()
+    return jsonify({'message': 'documents cleared'})
+
 
 def _build_cors_preflight_response():
     response = make_response()
