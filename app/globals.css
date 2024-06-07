@@ -9,7 +9,7 @@ p {
 }
 
 .message-container {
-  height: 50rem;
+  height: 75vh;
   display: flex;
   flex-direction: column;
   overflow-y: auto; /* 允許垂直方向上的滾動 */

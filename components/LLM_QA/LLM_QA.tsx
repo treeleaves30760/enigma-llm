@@ -46,6 +46,7 @@ const LLM_QA = () => {
 
     return (
         <div className="container">
+            <br />
             <div className="message-container">
                 {messages.map((msg, index) => (
                     <div key={index} className={`message ${msg.sender === 'User' ? 'user-message' : 'bot-message'}`}>
@@ -54,8 +55,9 @@ const LLM_QA = () => {
                     </div>
                 ))}
             </div>
+            <br />
             <div className="input-group mb-3">
-                <button className="btn btn-outline-secondary w-10" disable="true" onClick={() => fileInputRef.current?.click()}>Upload File</button>
+                <button className="btn btn-outline-secondary w-10" disabled={true} onClick={() => fileInputRef.current?.click()}>Upload File</button>
                 <input type="text" className="form-control w-50" id="UserInput" value={input} onChange={handleInputChange} />
                 <button className="btn btn-outline-secondary w-10" onClick={handleSubmit}>Send Message</button>
             </div>
