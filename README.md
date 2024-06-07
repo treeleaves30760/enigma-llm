@@ -7,6 +7,7 @@ This is the project for LLM TA.
 First, run the development server:
 
 ```bash
+npm install
 npm run dev
 ```
 
