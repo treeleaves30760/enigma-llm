@@ -83,6 +83,7 @@ def add_document():
     print(f'Content: {user_content}')
     documents.append(user_content)
     
+    save_datas_to_file()
     return jsonify({'message': 'document added'})
 
 @app.route('/get_documents', methods=['GET', 'OPTIONS'])
@@ -109,7 +110,8 @@ def update_document():
     if old_content in documents:
         documents.remove(old_content)
         documents.append(new_content)
-    
+
+    save_datas_to_file()
     return jsonify({'message': 'document updated'})
 
 @app.route('/delete_document', methods=['POST', 'OPTIONS'])
@@ -126,6 +128,7 @@ def delete_document():
     if user_content in documents:
         documents.remove(user_content)
     
+    save_datas_to_file()
     return jsonify({'message': 'document removed'})
 
 @app.route('/clear_documents', methods=['GET', 'OPTIONS'])
@@ -134,6 +137,8 @@ def clear_documents():
     if request.method == "OPTIONS":
         return _build_cors_preflight_response()
     documents.clear()
+    
+    save_datas_to_file()
     return jsonify({'message': 'documents cleared'})
 
 
