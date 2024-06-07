@@ -62,6 +62,8 @@ def process_input():
         query_texts=[user_content],
         n_results=2
     )
+    print(f'RAG Result: {rag_result["documents"]}')
+    rag_content = "\n".join(rag_result["documents"][0])
     
     system_prompt = '''The following is a conversation with an AI assistant. The assistant is helpful, creative, clever, and very friendly. 
 You should end your answer with +++.
@@ -70,7 +72,7 @@ A:My name is LLM_TA+++
 Q:'''
 
     prompt_data = {
-        'prompt': rag_result + system_prompt + user_content + '+++\nA:',
+        'prompt': rag_content + system_prompt + user_content + '+++\nA:',
         'n_predict': 1024,
         'stop': ['+++', 'Q:']
     }
