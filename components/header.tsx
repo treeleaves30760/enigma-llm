@@ -21,12 +21,12 @@ const Header = () => {
                     <li className="nav-item">
                         <a className="nav-link" href="/LLM_QA">Home</a>
                     </li>
-                    <li className="nav-item">
+                    {/* <li className="nav-item">
                         <a className="nav-link" href="/Questions">Question</a>
                     </li>
                     <li className="nav-item">
                         <a className="nav-link" href="/Questions_list">Question List</a>
-                    </li>
+                    </li> */}
                     <li className="nav-item">
                         <a className="nav-link" href="/Documents_Manage">Document</a>
                     </li>
