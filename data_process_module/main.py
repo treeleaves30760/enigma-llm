@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, make_response
 import requests
 from flask_cors import CORS, cross_origin  # 導入 CORS
+import json
+from apscheduler.schedulers.background import BackgroundScheduler
 
 app = Flask(__name__)
 # 允許所有來自 localhost:3000 的請求
@@ -8,6 +10,30 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_cred
 
 # 暫時使用陣列儲存
 documents = []
+
+def load_datas_from_file():
+    """從 JSON 檔案中加載 documents 列表"""
+    try:
+        with open('./documents/datas.json', 'r') as f:
+            global documents
+            documents = json.load(f)["document"]
+        print("Documents loaded from file.")
+        print(f'Documents: {documents}')
+    except (FileNotFoundError, KeyError):
+        print("No existing file or 'document' key not found. Starting with an empty list.")
+        documents = []
+
+def save_datas_to_file():
+    """
+    將 documents 列表存儲為 JSON 檔案
+    """
+    with open('./documents/datas.json', 'w') as f:
+        json.dump({"document": documents}, f)
+    print("Documents saved to file.")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=save_datas_to_file, trigger='interval', minutes=1)
+scheduler.start()
 
 @app.route('/process', methods=['POST', 'OPTIONS'])
 @cross_origin()
@@ -119,4 +145,5 @@ def _build_cors_preflight_response():
     return response
 
 if __name__ == '__main__':
+    load_datas_from_file()
     app.run(debug=True, port=5000)
