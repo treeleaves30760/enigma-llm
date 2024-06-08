@@ -33,7 +33,7 @@ const LLM_QA = () => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({content: input })
+            body: JSON.stringify({content: user_input })
         });
         const data = await response.json();
         if (data && data.content) {
