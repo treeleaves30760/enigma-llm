@@ -1,6 +1,6 @@
 'use client';
 
-export default function Error() {
+export default function Error_Page() {
     return (
         <div>
             <h1>404 - Page Not Found</h1>
