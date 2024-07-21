@@ -1,6 +1,6 @@
-# Large Language Model TA
+# Enigma LLM
 
-This is the project for LLM TA.
+This LLM-RAG project uses Next.js + shadcn-ui + python(flask + chromadb). Aim to create a lightweight RAG framework.
 
 # Key Features
 
