@@ -1,134 +1,239 @@
-'use client';
+"use client";
+import React, { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Markdown from "react-markdown";
 
-import React, { useState, useEffect } from 'react';
+const DocumentManagement = () => {
+	const [documents, setDocuments] = useState<Document[]>([]);
+	const [text, setText] = useState("");
+	const [textId, setTextId] = useState("");
+	const [filter, setFilter] = useState("");
+	const [editText, setEditText] = useState("");
+	const [editId, setEditId] = useState<string | null>(null);
+	const [newEditId, setNewEditId] = useState("");
+	const SERVER_IP = "http://127.0.0.1:5000";
 
-export default function DocumentsManage() {
-    const [text, setText] = useState('');
-    const [submissions, setSubmissions] = useState([]);
-    const [editIndex, setEditIndex] = useState(-1);
-    const [editText, setEditText] = useState('');
+	interface Document {
+		id: string;
+		content: string;
+	}
 
-    useEffect(() => {
-        fetchDocuments();
-    }, []);
+	useEffect(() => {
+		fetchDocuments();
+	}, []);
 
-    const handleTextChange = (event) => {
-        setText(event.target.value);
-    };
+	const fetchDocuments = async () => {
+		try {
+			const response = await fetch(SERVER_IP + "/get_documents");
+			if (response.ok) {
+				const data = await response.json();
+				const combinedData = data.documents.map(
+					(content: any, index: string | number) => ({
+						content,
+						id: data.ids[index],
+					})
+				);
+				console.log("combinedData", combinedData);
+				setDocuments(combinedData);
+			} else {
+				throw new Error("Failed to fetch documents");
+			}
+		} catch (error) {
+			console.error("Error fetching documents:", error);
+		}
+	};
 
-    const handleEditChange = (event) => {
-        setEditText(event.target.value);
-    };
+	const saveDocument = async () => {
+		try {
+			const response = await fetch(SERVER_IP + "/add_document", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ content: text, id: textId }),
+			});
+			if (response.ok) {
+				setText("");
+				setTextId("");
+				await fetchDocuments();
+			} else {
+				console.error(
+					"Failed to save document:",
+					await response.json()
+				);
+			}
+		} catch (error) {
+			console.error("Error saving document:", error);
+		}
+	};
 
-    const handleSave = async () => {
-        try {
-            const response = await fetch('http://127.0.0.1:5000/add_document', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ content: text })
-            });
-            if (response.ok) {
-                setText('');
-                fetchDocuments();
-            } else {
-                console.error('Failed to save document:', await response.json());
-            }
-        } catch (error) {
-            console.error('Error saving document:', error);
-        }
-    };
+	const updateDocument = async () => {
+		if (editId) {
+			try {
+				const response = await fetch(SERVER_IP + "/update_document", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						old_id: editId,
+						new_content: editText,
+						new_id: newEditId,
+					}),
+				});
+				if (response.ok) {
+					setEditId(null);
+					setNewEditId("");
+					setEditText("");
+					await fetchDocuments();
+				} else {
+					console.error(
+						"Failed to update document:",
+						await response.json()
+					);
+				}
+			} catch (error) {
+				console.error("Error updating document:", error);
+			}
+		}
+	};
 
-    const handleUpdate = async (index) => {
-        if (editIndex !== -1) {
-            try {
-                const old_content = submissions[editIndex];
-                const response = await fetch('http://127.0.0.1:5000/update_document', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ old_content: old_content, new_content: editText })
-                });
-                if (response.ok) {
-                    setEditIndex(-1);
-                    fetchDocuments();
-                } else {
-                    console.error('Failed to update document:', await response.json());
-                }
-            } catch (error) {
-                console.error('Error updating document:', error);
-            }
-        }
-    };
+	const editDocument = (document: Document) => {
+		setEditId(document.id);
+		setNewEditId(document.id);
+		setEditText(document.content);
+	};
 
-    const handleEdit = (index) => {
-        setEditIndex(index);
-        setEditText(submissions[index]);
-    };
+	const deleteDocument = async (data: Document) => {
+		try {
+			const response = await fetch(SERVER_IP + "/delete_document", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					content: data.content,
+					id: data.id,
+				}),
+			});
+			if (response.ok) {
+				await fetchDocuments();
+			} else {
+				console.error(
+					"Failed to delete document:",
+					await response.json()
+				);
+			}
+		} catch (error) {
+			console.error("Error deleting document:", error);
+		}
+	};
 
-    const handleDelete = async (content) => {
-        try {
-            const response = await fetch('http://127.0.0.1:5000/delete_document', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ content: content })
-            });
-            if (response.ok) {
-                fetchDocuments();
-            } else {
-                console.error('Failed to delete document:', await response.json());
-            }
-        } catch (error) {
-            console.error('Error deleting document:', error);
-        }
-    };
+	const filteredDocuments = documents.filter((document: Document) =>
+		document.content.toLowerCase().includes(filter.toLowerCase())
+	);
 
-    const fetchDocuments = async () => {
-        try {
-            const response = await fetch('http://127.0.0.1:5000/get_documents');
-            if (response.ok) {
-                const data = await response.json();
-                setSubmissions(data.documents);
-            } else {
-                console.error('Failed to fetch documents');
-            }
-        } catch (error) {
-            console.error('Error fetching documents:', error);
-        }
-    };
+	return (
+		<div className="container mx-auto p-4">
+			<div className="space-y-4">
+				<div className="flex items-stretch">
+					<span className="inline-flex items-center bg-secondary text-secondary-foreground px-3 rounded-l-md">
+						ID
+					</span>
+					<Input
+						type="text"
+						value={textId}
+						onChange={(e) => setTextId(e.target.value)}
+						placeholder="Data ID"
+						className="rounded-l-none flex-grow"
+					/>
+				</div>
+				<div className="flex items-stretch">
+					<span className="inline-flex items-center bg-secondary text-secondary-foreground px-3 rounded-l-md">
+						<pre>知識</pre>
+					</span>
+					<Textarea
+						value={text}
+						onChange={(e) => setText(e.target.value)}
+						placeholder="Type data here..."
+						className="rounded-l-none flex-grow"
+					/>
+					<div className="flex items-center ml-2">
+						<Button onClick={saveDocument}>儲存到後端資料庫</Button>
+					</div>
+				</div>
+			</div>
 
-    return (
-        <div className="container">
-            <br />
-            <div className="input-group">
-                <span className="input-group-text">請輸入知識</span>
-                <textarea className="form-control" aria-label="With textarea" value={text} onChange={handleTextChange}></textarea>
-                <button className="btn btn-outline-secondary" onClick={handleSave}>儲存到後端資料庫</button>
-            </div>
-            <div>
-                {submissions.map((submission, index) => (
-                    <div className="card m-2" key={index}>
-                        <div className="card-body">
-                            {editIndex === index ? (
-                                <textarea className="form-control" value={editText} onChange={handleEditChange}></textarea>
-                            ) : (
-                                <p>{submission}</p>
-                            )}
-                            {editIndex === index ? (
-                                <button className="btn btn-success m-1" onClick={() => handleUpdate(index)}>更新</button>
-                            ) : (
-                                <button className="btn btn-primary m-1" onClick={() => handleEdit(index)}>編輯</button>
-                            )}
-                            <button className="btn btn-danger m-1" onClick={() => handleDelete(submission)}>刪除</button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-}
+			<div className="mt-4">
+				<Input
+					type="text"
+					value={filter}
+					onChange={(e) => setFilter(e.target.value)}
+					placeholder="Search by keyword..."
+				/>
+			</div>
 
+			<div className="mt-4 space-y-4">
+				{filteredDocuments.map((document) => (
+					<Card key={document.id}>
+						<CardHeader>
+							<CardTitle>
+								ID: <b>{document.id}</b>
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							{editId === document.id ? (
+								<div className="space-y-2">
+									<div className="flex items-center space-x-2">
+										<span className="bg-secondary text-secondary-foreground px-3 py-2 rounded-l-md">
+											ID
+										</span>
+										<Input
+											type="text"
+											value={newEditId}
+											onChange={(e) =>
+												setNewEditId(e.target.value)
+											}
+											placeholder="New ID"
+										/>
+									</div>
+									<Textarea
+										value={editText}
+										onChange={(e) =>
+											setEditText(e.target.value)
+										}
+										className="h-60"
+									/>
+								</div>
+							) : (
+								<Markdown>{document.content}</Markdown>
+							)}
+							<div className="flex space-x-2 mt-4">
+								{editId === document.id ? (
+									<Button
+										onClick={updateDocument}
+										variant="default"
+									>
+										更新
+									</Button>
+								) : (
+									<Button
+										onClick={() => editDocument(document)}
+										variant="secondary"
+									>
+										編輯
+									</Button>
+								)}
+								<Button
+									onClick={() => deleteDocument(document)}
+									variant="destructive"
+								>
+									刪除
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
+				))}
+			</div>
+		</div>
+	);
+};
+
+export default DocumentManagement;

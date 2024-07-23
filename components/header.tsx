@@ -1,44 +1,70 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+	NavigationMenu,
+	NavigationMenuContent,
+	NavigationMenuItem,
+	NavigationMenuLink,
+	NavigationMenuList,
+	NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 const Header = () => {
-    const [isActive, setIsActive] = useState(true);
+	const [isOpen, setIsOpen] = useState(false);
 
-    const toggleClass = () => {
-        setIsActive(!isActive);
-    };
+	const toggleMenu = () => {
+		setIsOpen(!isOpen);
+	};
 
-    return (
-        <nav className="navbar navbar-expand-lg bg-body-tertiary">
-            <div className="container">
-                <a className="navbar-brand" href="/LLM_QA">LLM-TA</a>
-                <button className="navbar-toggler" type="button" onClick={toggleClass} data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span className="navbar-toggler-icon"></span>
-                </button>
-                <div className={isActive ? 'collapse navbar-collapse' : 'navbar-collapse'} id="navbarSupportedContent">
-                <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li className="nav-item">
-                        <a className="nav-link" href="/LLM_QA">Home</a>
-                    </li>
-                    {/* <li className="nav-item">
-                        <a className="nav-link" href="/Questions">Question</a>
-                    </li>
-                    <li className="nav-item">
-                        <a className="nav-link" href="/Questions_list">Question List</a>
-                    </li> */}
-                    <li className="nav-item">
-                        <a className="nav-link" href="/Documents_Manage">Document</a>
-                    </li>
-                </ul>
-                <form className="d-flex" role="search">
-                    <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" id="HeaderSearchBar"/>
-                    <button className="btn btn-outline-success" type="submit">Search</button>
-                </form>
-                </div>
-            </div>
-        </nav>
-    );
-}
+	return (
+		<nav className="bg-background py-6">
+			<div className="container mx-auto px-4">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center">
+						<a href="/LLM_QA" className="text-xl font-bold mr-6">
+							LLM-TA
+						</a>
+
+						<NavigationMenu>
+							<NavigationMenuList>
+								<NavigationMenuItem>
+									<NavigationMenuLink
+										className="px-3"
+										href="/LLM_QA"
+									>
+										Home
+									</NavigationMenuLink>
+								</NavigationMenuItem>
+								<NavigationMenuItem>
+									<NavigationMenuLink
+										className="px-3"
+										href="/Documents_Manage"
+									>
+										Document
+									</NavigationMenuLink>
+								</NavigationMenuItem>
+							</NavigationMenuList>
+						</NavigationMenu>
+					</div>
+
+					{/* <form className="flex" onSubmit={(e) => e.preventDefault()}>
+						<Input
+							type="search"
+							placeholder="Search"
+							className="mr-2"
+							id="HeaderSearchBar"
+						/>
+						<Button type="submit" variant="outline">
+							Search
+						</Button>
+					</form> */}
+				</div>
+			</div>
+		</nav>
+	);
+};
 
 export default Header;
