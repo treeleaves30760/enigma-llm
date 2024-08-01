@@ -2,7 +2,7 @@
 
 This LLM-RAG project uses Next.js + shadcn-ui + python(flask + chromadb). Aim to create a lightweight RAG framework.
 
-# Key Features
+## Key Features
 
 * **Document Upload & Management:** Easily upload personal documents (markdown format) and manage/delete them within the interface.
 * **Vectorization & Storage:** Utilizes a Python backend (Flask, ChromaDB) to convert documents into vectors and store them in a vector database for efficient semantic search.
