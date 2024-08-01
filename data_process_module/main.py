@@ -79,7 +79,7 @@ def submit_prompt():
 
     # 構建最終的prompt
     # Based on the user's input and the queried data, generate the final prompt
-    final_prompt = f"""T<|start_header_id|>system<|end_header_id|>: You are Enigma LLM, an AI assistant that is helpful, creative, clever, and very friendly.<|eot_id|>
+    final_prompt = f"""<|start_header_id|>system<|end_header_id|>: You are Enigma LLM, an AI assistant that is helpful, creative, clever, and very friendly.<|eot_id|>
 <|start_header_id|>system<|end_header_id|>: Answer questions based on the provided data and its similarity.<|eot_id|>
 <|start_header_id|>system<|end_header_id|>: When referencing data, always show the relevant part of the data in your response.<|eot_id|>
 <|start_header_id|>system<|end_header_id|>: The data is presented in a simple text-based table format.
@@ -103,8 +103,7 @@ Below is agffaw data in markdown table.
 <|start_header_id|>user<|end_header_id|>: What is your name?<|eot_id|>
 <|start_header_id|>assistant<|end_header_id|>: My name is Accton Chat.<|eot_id|>
 <|start_header_id|>user<|end_header_id|>: {user_question}<|eot_id|>
-<|start_header_id|>assistant<|end_header_id|>: 
-"""
+<|start_header_id|>assistant<|end_header_id|>: """
     if DEBUG_MODE:
         print(f"|DEBUG|{time.time()}|Final prompt: {final_prompt}")
 
