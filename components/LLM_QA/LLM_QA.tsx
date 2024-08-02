@@ -82,7 +82,7 @@ export default function ChatPage() {
 		<div className="container mx-auto mt-10">
 			<Card>
 				<CardHeader className="text-center text-2xl font-bold">
-					Engina-llm
+					Enigma LLM
 				</CardHeader>
 				<CardContent>
 					<ScrollArea className="h-[65vh] rounded-md border p-4">
