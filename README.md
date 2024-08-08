@@ -12,6 +12,11 @@ This LLM-RAG project uses Next.js + shadcn-ui + python(flask + chromadb). Aim to
 
 ## Getting Started
 
+> [!NOTE]
+> You need to run the llama.cpp server
+> You can refer to [here](https://github.com/ggerganov/llama.cpp) for more information
+> We consider to add a local start service in future.
+
 First, run the development server:
 
 ```bash
@@ -26,6 +31,12 @@ cd data_process_module
 conda create -n llm_ta python==3.11
 conda activate llm_ta
 pip install -r requirements.txt
+```
+
+Finally, run the backend server:
+
+```bash
+python main.py
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
