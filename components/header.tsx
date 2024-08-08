@@ -13,6 +13,7 @@ import {
 const pages = [
 	{ name: "Home", path: "/" },
 	{ name: "LLM-QA", path: "/LLM_QA" },
+	{ name: "LLM-Stream", path: "/LLM_QA_Stream" },
 	{ name: "Document", path: "/Documents_Manage" },
 ];
 
