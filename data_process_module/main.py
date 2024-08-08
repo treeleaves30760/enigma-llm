@@ -8,7 +8,8 @@ Description: This is the main file of the data process module.
 """
 
 import time
-from flask import Flask, request, jsonify, make_response
+import json
+from flask import Flask, request, jsonify, make_response, Response, stream_with_context
 import requests
 from flask_cors import CORS, cross_origin  # 導入 CORS
 import chromadb
@@ -17,6 +18,7 @@ DB_PATH = "./DB"
 DEBUG_MODE = True
 COLLECTION_NAME = "Documents"
 LLAMA_CPP_URL = "http://127.0.0.1:8080"
+ACCEPT_ORIGINS = ["http://localhost:*"]
 HOST_NAME = "127.0.0.1"
 PORT = 5000
 
@@ -26,7 +28,7 @@ collection = chroma_client.get_or_create_collection(name=COLLECTION_NAME)
 app = Flask(__name__)
 CORS(
     app,
-    resources={r"/*": {"origins": "http://localhost:3000"}},
+    resources={r"/*": {"origins": ACCEPT_ORIGINS}},
     supports_credentials=True,
 )
 
@@ -127,6 +129,114 @@ Below is agffaw data in markdown table.
         return jsonify({"content": content})
     # 處理失敗，返回錯誤信息
     return jsonify({"error": "Failed to get response from llama.cpp server"}), 500
+
+
+@app.route("/submit-stream", methods=["POST"])
+def submit_prompt_stream():
+    """
+    This is a content process function
+    1. Catch the user's input
+    2. Send to DB and query the data
+    3. Send to LLM with user's input and queried data
+    4. return to user website in stream method.
+    """
+
+    if request.method == "OPTIONS":
+        return _build_cors_preflight_response()
+
+    user_question = request.json.get("prompt")
+    if not user_question:
+        return jsonify({"error": "No prompt provided"}), 400
+
+    n_result = 1
+    if "n_result" in request.json:
+        n_result = request.json["n_result"]
+
+    show_mode = request.json.get("show_mode")
+    if not show_mode:
+        show_mode = "full"
+
+    # 從DB中查詢數據
+    # Query data from the DB
+    results = collection.query(query_texts=[user_question], n_results=n_result)
+    data_for_llama = ""
+    if results["documents"][0]:
+        data_for_llama += "\n".join(results["documents"][0])
+
+    # 向Llama.cpp服務器發送Health請求，確認目前是否有空閒的序列
+    # Send a health request to the Llama.cpp server to check if there is a free sequence
+    for i in range(10):
+        s = requests.get(f"{LLAMA_CPP_URL}/health", timeout=10)
+
+        if DEBUG_MODE:
+            print(f"|DEBUG|{time.time()}|Attempt {i + 1}: {s.json()}")
+
+        if s.json()["status"] == "ok":
+            break
+        time.sleep(1)
+    else:
+        return jsonify({"error": "No available sequence"}), 500
+
+    # 構建最終的prompt
+    # Based on the user's input and the queried data, generate the final prompt
+    final_prompt = f"""<|start_header_id|>system<|end_header_id|>: You are Enigma LLM, an AI assistant that is helpful, creative, clever, and very friendly.<|eot_id|>
+<|start_header_id|>system<|end_header_id|>: Answer questions based on the provided data and its similarity.<|eot_id|>
+<|start_header_id|>system<|end_header_id|>: When referencing data, always show the relevant part of the data in your response.<|eot_id|>
+<|start_header_id|>system<|end_header_id|>: The data is presented in a simple text-based table format.
+
+Reference Data:
+
+Below is agffaw data in markdown table.
+
+|AAA|BBB|CCC|DDD|EEE|
+| - | - | - | - | - |
+|Z01|qas|qwe|asd|xcc|
+|Z02|cvg|hwa|zxc|dfq|
+|Z03|pui|qwr|lyr|pab|
+
+{data_for_llama}
+<|eot_id|>
+<|start_header_id|>user<|end_header_id|>: What is Z01's CCC in agffaw?<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>: Based on the data:\n|AAA|BBB|CCC|DDD|EEE|\n| - | - | - | - | - |\n|Z01|qas|qwe|asd|xcc|\nZ01's CCC in agffaw is qwe.<|eot_id|>
+<|start_header_id|>user<|end_header_id|>: List all EEE data in agffaw.<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>: Based on the data, all EEE values in agffaw are:\n|EEE|\n| - |\n|xcc|\n|dfq|\n|pab|\nSo, all EEE data in agffaw are xcc, dfq, and pab.<|eot_id|>
+<|start_header_id|>user<|end_header_id|>: What is your name?<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>: My name is Accton Chat.<|eot_id|>
+<|start_header_id|>user<|end_header_id|>: {user_question}<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>: """
+    if DEBUG_MODE:
+        print(f"|DEBUG|{time.time()}|Final prompt: {final_prompt}")
+
+    # 構建parameter dict，並向llama.cpp服務器發送POST請求
+    # Build the parameter dict and send a POST request to the llama.cpp server
+    parameter = {
+        "prompt": final_prompt,
+        "n_predict": 1024,
+        "temperature": 0,
+        "stop": ["+++", "Q:"],
+        "stream": True,
+    }
+
+    def generate():
+        with requests.post(f'{LLAMA_CPP_URL}/completion', json=parameter, timeout=1000, stream=True) as response:
+            if response.status_code != 200:
+                yield jsonify({"error": "Failed to get response from llama.cpp server"}), 500
+                return
+
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        decoded_line = line.decode('utf-8')
+                        if decoded_line.startswith("data: "):
+                            # Remove the "data: " prefix
+                            json_str = decoded_line[6:]
+                            data = json.loads(json_str)
+                            if 'content' in data:
+                                yield json.dumps({'content': data['content']}) + '\n'
+                    except:
+                        continue
+
+    return Response(stream_with_context(generate()), content_type='text/event-stream')
 
 
 @app.route("/add_document", methods=["POST", "OPTIONS"])

@@ -14,7 +14,7 @@ import Markdown from "react-markdown";
 
 const SERVER_IP = "http://127.0.0.1:5000";
 
-export default function ChatPage() {
+export default function ChatPage_Stream() {
 	const [messages, setMessages] = useState<
 		{ text: string; role: "User" | "Bot" }[]
 	>([]);
@@ -47,7 +47,6 @@ export default function ChatPage() {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					prompt: inputMessage,
-					show_mode: "full",
 				}),
 			});
 
